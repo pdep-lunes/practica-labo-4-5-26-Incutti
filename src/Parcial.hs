@@ -11,7 +11,84 @@ type RazasExtravagantes = [String]
 listaRazaExtravagante :: RazasExtravagantes
 listaRazaExtravagante = ["dalmata", "pomerania"]
 
+data Perrito = UnPerrito{module Parcial where
+
+import Text.Show.Functions()
+
+-- PARA QUE NO SE ROMPAN LOS TESTS CUANDO PRUEBO SI COMPILA
+-- QUEDA HASTA HACER TESTS REALES
+doble :: Double -> Double
+doble num = num * 2
+
+type Juguete = String
+type RazasExtravagantes = [String]
+listaRazaExtravagante :: RazasExtravagantes
+listaRazaExtravagante = ["dalmata", "pomerania"]
+
 data Perrito = UnPerrito{
+                        raza :: String,
+                        juguetesFavoritos :: [Juguete],
+                        tiempoEnGuarderia :: Int,
+                        energia :: Double
+} deriving (Show, Eq)
+
+data Actividad = UnaActividad{
+                        ejercicio :: (Perrito -> Perrito),
+                        tiempo :: Int
+} 
+
+data Guarderia = UnaGuarderia{
+                        nombre :: String,
+                        rutina :: [Actividad]
+} 
+
+-- PARTE A
+jugar :: Perrito -> Perrito
+jugar unPerrito = unPerrito { energia = max 0 . (-) 10 . energia $ unPerrito } 
+
+ladrar :: Double -> Perrito -> Perrito
+ladrar cantidadLadridos unPerrito = unPerrito { energia = energia unPerrito + (cantidadLadridos/2) }
+
+regalar :: Juguete -> Perrito -> Perrito
+regalar unJuguete unPerrito = unPerrito { juguetesFavoritos = (:) unJuguete (juguetesFavoritos unPerrito) }
+
+esRazaExtravagante :: Perrito -> Bool
+esRazaExtravagante unPerrito = elem (raza unPerrito) listaRazaExtravagante
+-- este esta bien? no me acuerdo si tenia q pasar la lista por params 
+leQuedaTiempo :: Int -> Perrito -> Bool
+leQuedaTiempo tiempoRestante unPerrito = tiempoEnGuarderia unPerrito >= tiempoRestante
+tieneAccesoASpa :: Perrito -> Bool
+tieneAccesoASpa unPerrito = leQuedaTiempo 50 unPerrito || esRazaExtravagante unPerrito
+energiaA100 :: Perrito -> Perrito
+energiaA100 unPerrito = unPerrito { energia = 100 }
+regalarPeine :: Perrito -> Perrito
+regalarPeine unPerrito = regalar "peine de goma" unPerrito
+diaDeSpa :: Perrito -> Perrito
+diaDeSpa unPerrito
+    | tieneAccesoASpa unPerrito = energiaA100 . regalarPeine $ unPerrito
+    | otherwise = unPerrito
+
+perderPrimerJuguete :: Perrito -> Perrito
+perderPrimerJuguete unPerrito = unPerrito { juguetesFavoritos = drop 1 . juguetesFavoritos $ unPerrito }
+diaDeCampo :: Perrito -> Perrito
+diaDeCampo unPerrito = jugar . perderPrimerJuguete $ unPerrito
+
+
+zara = UnPerrito "dalmata" ["pelota", "mantita"] 90 80
+guarderiaDePerritos = UnaGuarderia "guarderia de perritos" [UnaActividad jugar 30, 
+                                                             UnaActividad (ladrar 18) 20, 
+                                                             UnaActividad (regalar "pelota") 0, 
+                                                             UnaActividad diaDeSpa 120, 
+                                                             UnaActividad diaDeCampo 720]
+
+-- PARTE B
+duracionRutina :: Guarderia -> Int
+duracionRutina unaGuarderia = sum . map tiempo . rutina $ unaGuarderia   
+perritoDisponible :: Perrito -> Guarderia -> Bool
+perritoDisponible unPerrito unaGuarderia = tiempoEnGuarderia unPerrito >= duracionRutina unaGuarderia
+
+perritoResponsable :: Perrito -> Bool
+perritoResponsable unPerrito = 3 > (length . juguetesFavoritos . diaDeCampo $ unPerrito)
                         raza :: String,
                         juguetesFavoritos :: [Juguete],
                         tiempoEnGuarderia :: Int,
